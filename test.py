@@ -13,14 +13,13 @@ st.markdown("Predicting monthly rental prices using Machine Learning.")
 st.sidebar.header("🔍 Input Apartment Details")
 
 def user_input_features():
-    # Based on features identified in the Apartment Rent dataset [20, 24]
-    sqft = st.sidebar.slider("Square Footage (sq_ft)", 100, 5000, 950)
-    beds = st.sidebar.selectbox("Number of Bedrooms", [4, 25-28])
+    # Features from the Apartment Rent dataset [3, 4]
+    sqft = st.sidebar.slider("Square Footage", 100, 5000, 950)
+    beds = st.sidebar.selectbox("Number of Bedrooms", [5-8]) # options added
     baths = st.sidebar.selectbox("Number of Bathrooms", [1.0, 1.5, 2.0, 2.5, 3.0])
-    pets = st.sidebar.radio("Pets Allowed?", ["Yes", "No", "Cats Only", "Dogs Only"])
-    state = st.sidebar.selectbox("US State", ["CA", "TX", "NY", "FL", "WA", "NC", "VA"])
+    pets = st.sidebar.radio("Pets Allowed?", ["None", "Cats", "Dogs", "Both"])
+    state = st.sidebar.selectbox("State", ["CA", "TX", "NY", "FL", "WA"])
     
-    # Create a dictionary of inputs
     data = {
         'square_feet': sqft,
         'bedrooms': beds,
@@ -28,7 +27,7 @@ def user_input_features():
         'pets_allowed': pets,
         'state': state
     }
-    return pd.DataFrame(data, index=)
+    return pd.DataFrame(data, index=) 
 
 input_df = user_input_features()
 
