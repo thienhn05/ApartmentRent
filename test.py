@@ -55,9 +55,9 @@ with tab1:
     # Example visualization comparing price across states [35, 36]
     st.write("### Rent Comparison by State")
     dummy_data = pd.DataFrame({
-        'State': ["NY", "CA", "TX", "FL", "WA"],
-        'Avg_Rent': 
-    })
+    'State': ["NY", "CA", "TX", "FL", "WA"],
+    'Avg_Rent': [2500, 2800, 1500, 1700, 2200]
+})
     fig_bar = px.bar(dummy_data, x='State', y='Avg_Rent', color='Avg_Rent', color_continuous_scale="Blues")
     st.plotly_chart(fig_bar, use_container_width=True)
 
