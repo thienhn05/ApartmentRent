@@ -27,7 +27,7 @@ def user_input_features():
         'pets_allowed': pets,
         'state': state
     }
-    return pd.DataFrame(data, index=) 
+    return pd.DataFrame(data, index=[0])
 
 input_df = user_input_features()
 
