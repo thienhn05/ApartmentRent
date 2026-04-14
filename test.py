@@ -120,7 +120,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # TAB 1: LOGISTIC REGRESSION
 # ===============================================
 with tab1:
-    st.header("🤖 Logistic Regression Classifier")
+    st.header("Logistic Regression Classifier")
     
     if logreg_model and logreg_metadata:
         st.markdown("""
