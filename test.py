@@ -51,7 +51,7 @@ kpi3.metric("Model R² Accuracy", "0.65")
 st.subheader("📊 Rental Market Trends")
 state_data = pd.DataFrame({
     'State': ["TX", "CA", "VA", "NC", "CO", "FL", "NY", "WA"],
-    'Avg_Rent': 
+    'Avg_Rent': [1200, 2500, 1500, 1300, 1800, 1600, 2700, 2200]
 })
 fig = px.bar(state_data, x='State', y='Avg_Rent', color='Avg_Rent', title="Average Rent by State")
 st.plotly_chart(fig, use_container_width=True)
