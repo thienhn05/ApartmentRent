@@ -38,7 +38,7 @@ PROPERTY_TYPE_MAPPING = {
 # PAGE CONFIGURATION
 # ===============================================
 st.set_page_config(
-    page_title="RentWise: ML Model Showcase", 
+    page_title="Apartment Rental Market - ML Model Showcase", 
     layout="wide",
     page_icon="🏙️"
 )
