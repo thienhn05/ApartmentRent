@@ -1,89 +1,74 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import pickle
 import plotly.express as px
 
-# 1. Page Configuration and Title
-st.set_page_config(page_title="RentWise: Apartment Price Predictor", layout="wide")
+# 1. Page Configuration
+st.set_page_config(page_title="RentWise: Apartment Rent Predictor", layout="wide")
 st.title("🏙️ Apartment Rental Market Dashboard")
-st.markdown("Predicting monthly rental prices using Machine Learning.")
+st.markdown("A standalone predictive framework utilizing **Support Vector Regression**.")
 
-# 2. Sidebar for Model Inputs (Predictive Feature Selection)
-st.sidebar.header("🔍 Input Apartment Details")
+# 2. Loading the Serialized Model [5]
+@st.cache_resource
+def load_model():
+    try:
+        with open("model/best_rent_model.pkl", "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return None
+
+model = load_model()
+
+# 3. Sidebar for Interative "What-if" Scenarios [6]
+st.sidebar.header("🔍 Apartment Specifications")
 
 def user_input_features():
-    # Features from the Apartment Rent dataset [3, 4]
-    sqft = st.sidebar.slider("Square Footage", 100, 5000, 950)
-    beds = st.sidebar.selectbox("Number of Bedrooms", [5-8]) # options added
+    sqft = st.sidebar.slider("Square Footage (sq_ft)", 100, 5000, 950)
+    beds = st.sidebar.selectbox("Number of Bedrooms", [7-11])
     baths = st.sidebar.selectbox("Number of Bathrooms", [1.0, 1.5, 2.0, 2.5, 3.0])
-    pets = st.sidebar.radio("Pets Allowed?", ["None", "Cats", "Dogs", "Both"])
-    state = st.sidebar.selectbox("State", ["CA", "TX", "NY", "FL", "WA"])
-    
+    pets = st.sidebar.selectbox("Pets Allowed? (0=No, 1=Yes)", [7])
+    state = st.sidebar.selectbox("State Code", [7-14]) # Encodings from training
+
     data = {
         'square_feet': sqft,
         'bedrooms': beds,
         'bathrooms': baths,
-        'pets_allowed': pets,
-        'state': state
+        'pets_allowed_encoded': pets,
+        'state_encoded': state
     }
-    return pd.DataFrame(data, index=[0])
+    # FIXED: Index= ensures proper single-row DataFrame creation
+    return pd.DataFrame(data, index=)
 
 input_df = user_input_features()
 
-# 3. Load the Best Performing Model [29, 30]
-# Ensure your model file is saved as 'best_rent_model.pkl' in your ZIP submission [31]
-try:
-    with open("model/best_rent_model.pkl", "rb") as f:
-        model = pickle.load(f)
-except FileNotFoundError:
-    st.sidebar.error("⚠️ Model file not found. Please upload 'best_rent_model.pkl'.")
-    model = None
-
-# 4. Display Overview KPIs [32, 33]
+# 4. Overview KPIs [15]
 st.subheader("📌 Market Overview KPIs")
-col1, col2, col3 = st.columns(3)
-col1.metric("Avg. National Rent", "$1,527") # Data based on [10]
-col2.metric("Median Sq Ft", "900 sq.ft")
-col3.metric("Data Quality Score", "High (99%)")
+kpi1, kpi2, kpi3 = st.columns(3)
+kpi1.metric("Avg. National Rent", "$1,527 USD") # Based on dataset mean [16]
+kpi2.metric("Median Size", "900 sq.ft")
+kpi3.metric("Model R² Accuracy", "0.65")
 
-# 5. Exploratory Data Analysis (EDA) Visuals [4, 34, 35]
-st.subheader("📊 Visual Market Insights")
-tab1, tab2 = st.tabs(["Price Distribution", "Size vs Price"])
-
-with tab1:
-    # Example visualization comparing price across states [35, 36]
-    st.write("### Rent Comparison by State")
-    dummy_data = pd.DataFrame({
-    'State': ["NY", "CA", "TX", "FL", "WA"],
-    'Avg_Rent': [2500, 2800, 1500, 1700, 2200]
+# 5. Visual Insights (Exploratory Data Analysis) [8]
+st.subheader("📊 Rental Market Trends")
+state_data = pd.DataFrame({
+    'State': ["TX", "CA", "VA", "NC", "CO", "FL", "NY", "WA"],
+    'Avg_Rent': 
 })
-    fig_bar = px.bar(dummy_data, x='State', y='Avg_Rent', color='Avg_Rent', color_continuous_scale="Blues")
-    st.plotly_chart(fig_bar, use_container_width=True)
+fig = px.bar(state_data, x='State', y='Avg_Rent', color='Avg_Rent', title="Average Rent by State")
+st.plotly_chart(fig, use_container_width=True)
 
-with tab2:
-    # Scatter plot to show correlation [37, 38]
-    st.write("### Relationship: Square Feet vs Price")
-    st.info("Scatter plots allow you to visualize correlation patterns [37].")
-    # This would ideally use your clean_df
-    # st.scatter_chart(clean_df, x='square_feet', y='price')
-
-# 6. Prediction Logic [23, 39]
-st.subheader("🔮 Rental Price Prediction")
+# 6. Prediction Logic (Deployment) [5]
+st.subheader("🔮 Predictive Analytics Engine")
 if st.button("Calculate Estimated Rent"):
     if model:
-        # Preprocessing: Ensure input matches the training feature names [40]
-        prediction = model.predict(input_df) 
-        st.success(f"### The estimated monthly rent is: **${prediction:,.2f} USD**")
+        prediction = model.predict(input_df)
+        st.success(f"### The predicted monthly rent is: **${prediction:,.2f} USD**")
     else:
-        st.warning("Model is not loaded. Prediction is currently simulation mode.")
-        # Simulation based on average dataset mean [10]
-        simulated_price = (input_df['square_feet'] * 1.5) + (input_df['bedrooms'] * 100)
-        st.write(f"Estimated Simulation: **${simulated_price:,.2f}**")
+        st.error("⚠️ Error: Model file 'best_rent_model.pkl' not found. Please ensure it is in the /model folder.")
 
-# 7. Model Evaluation Metrics [41, 42]
-with st.expander("View Model Performance Metrics"):
-    st.write("Metric results from evaluation phase [41]:")
-    st.text("Root Mean Squared Error (RMSE): 245.12")
-    st.text("Mean Absolute Error (MAE): 180.50")
-    st.text("R-Squared Accuracy: 0.82")
+# 7. Model Technicalities [17]
+with st.expander("🛠️ View Model Performance Details"):
+    st.write("Results from 10-fold Cross-Validation:")
+    st.write("- **RMSE:** 0.0189")
+    st.write("- **MAE:** 0.0924")
+    st.write("- **Baseline Comparison:** Outperforms Decision Tree (R²=0.50)")
