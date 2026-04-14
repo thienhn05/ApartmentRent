@@ -36,8 +36,7 @@ def user_input_features():
         'pets_allowed_encoded': pets,
         'state_encoded': state
     }
-    # FIXED: Index= ensures proper single-row DataFrame creation
-    return pd.DataFrame(data, index=)
+    return pd.DataFrame(data, index=[0])
 
 input_df = user_input_features()
 
