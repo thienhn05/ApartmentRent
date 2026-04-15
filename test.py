@@ -630,7 +630,16 @@ with tab3:
     
     # Prepare data for association analysis
     eda_data = df_main.dropna(subset=['state', 'price']).copy()
-    eda_data['price_cat'] = pd.qcut(eda_data['price'], q=5, labels=['Very Low', 'Low', 'Medium', 'High', 'Very High'], duplicates='drop')
+    eda_data['price_cat_intervals'] = pd.qcut(eda_data['price'], q=5, duplicates='drop')
+    
+    # Create mapping from interval to formatted range string
+    price_range_mapping = {}
+    for interval in eda_data['price_cat_intervals'].unique():
+        if pd.notna(interval):
+            price_range_mapping[interval] = f"({interval.left:.1f}, {interval.right:.1f}]"
+    
+    # Create labeled version for display
+    eda_data['price_cat'] = eda_data['price_cat_intervals'].map(price_range_mapping)
     
     # ===== SECTION 1: PRICE SEGMENTS (UNSUPERVISED CLUSTERING) =====
     st.subheader("💰 Price Segmentation Analysis")
@@ -688,7 +697,8 @@ with tab3:
     
     with cat_col2:
         st.write("**Price Ranges by Category**")
-        for cat in ['Very Low', 'Low', 'Medium', 'High', 'Very High']:
+        price_categories_sorted = sorted(eda_data['price_cat'].dropna().unique(), key=lambda x: float(x.split(',')[0].replace('(', '')))
+        for cat in price_categories_sorted:
             cat_data = eda_data[eda_data['price_cat'] == cat]['price']
             if len(cat_data) > 0:
                 st.metric(
@@ -716,10 +726,11 @@ with tab3:
     
     with filter_col2:
         # Filter: Price category selection
+        price_categories = sorted(eda_data['price_cat'].dropna().unique())
         selected_categories = st.multiselect(
             "Filter by Price Category",
-            options=['Very Low', 'Low', 'Medium', 'High', 'Very High'],
-            default=['Very Low', 'Low', 'Medium', 'High', 'Very High']
+            options=price_categories,
+            default=price_categories
         )
     
     # Apply filters
@@ -733,23 +744,40 @@ with tab3:
         # Convert state codes to state names
         grouped_data.index = grouped_data.index.map(lambda x: STATE_CODE_TO_NAME.get(int(x), str(x)) if pd.notna(x) else str(x))
         
-        # Reorder columns by price level
-        col_order = [col for col in ['Very Low', 'Low', 'Medium', 'High', 'Very High'] if col in grouped_data.columns]
+        # Reorder columns by price range (numerically)
+        col_order = sorted(grouped_data.columns, key=lambda x: float(x.split(',')[0].replace('(', '')))
         grouped_data = grouped_data[col_order]
         
+        # Convert to long format for proper labeling
+        grouped_data_long = grouped_data.reset_index().melt(
+            id_vars='state',
+            var_name='Price Category',
+            value_name='Number of Apartments'
+        )
+        
+        # Order by price range
+        grouped_data_long['Price Category'] = pd.Categorical(
+            grouped_data_long['Price Category'],
+            categories=col_order,
+            ordered=True
+        )
+        
         fig_state = px.bar(
-            grouped_data,
-            x=grouped_data.index,
-            y=col_order,
-            barmode='stack',
+            grouped_data_long,
+            x='state',
+            y='Number of Apartments',
+            color='Price Category',
+            barmode='group',
             title=f'Price Category Distribution - Top {top_n} States',
-            labels={'x': 'State', 'y': 'Number of Apartments'},
-            height=600
+            height=600,
+            category_orders={'Price Category': col_order}
         )
         fig_state.update_layout(
             xaxis_tickangle=-45,
             margin=dict(b=150),
-            xaxis=dict(tickfont=dict(size=12))
+            xaxis=dict(title='State', tickfont=dict(size=12)),
+            yaxis=dict(title='Number of Apartments'),
+            legend=dict(title="Price Categories")
         )
         st.plotly_chart(fig_state, width='stretch', use_container_width=True)
         
