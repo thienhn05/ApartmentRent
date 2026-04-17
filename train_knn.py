@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import os
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import (confusion_matrix, classification_report, 
                              accuracy_score, precision_score, recall_score, f1_score)
@@ -78,10 +78,27 @@ print(f"   ✓ Training set: {len(X_train):,} samples")
 print(f"   ✓ Test set: {len(X_test):,} samples")
 
 # --- 5. Train KNN Model ---
-print("\n5️⃣  Training K-Nearest Neighbors Model...")
-print(f"   Parameters: n_neighbors=5")
+print("\n5️⃣  Finding Best K and Training K-Nearest Neighbors Model...")
 
-knn_model = KNeighborsClassifier(n_neighbors=5)
+# Range of k values to try
+k_range = range(1, 21)
+cv_scores = []
+print("   Evaluating k from 1 to 20 using 5-fold cross-validation...")
+
+# Evaluate each k using 5-fold cross-validation
+for k in k_range:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn, X, y, cv=5, scoring='accuracy')
+    cv_scores.append(scores.mean())
+
+# Best k
+best_k = k_range[np.argmax(cv_scores)]
+print(f"   ✓ Best k from cross-validation: {best_k}")
+
+# Initialize the model with best k
+knn_model = KNeighborsClassifier(n_neighbors=best_k)
+
+# Train the model
 knn_model.fit(X_train, y_train)
 
 print(f"   ✓ Model trained successfully")
@@ -135,7 +152,7 @@ metadata = {
     'f1_score': f1,
     'confusion_matrix': cm.tolist(),
     'original_feature_columns': features,
-    'n_neighbors': 5,
+    'n_neighbors': int(best_k),
     'metric': 'euclidean',
     'threshold': threshold
 }
