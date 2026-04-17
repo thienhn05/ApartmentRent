@@ -992,13 +992,6 @@ elif "Model Predictions" in page:
                 # Row 4: City Average Rent
                 city_avg = st.number_input("City Avg. Rent ($)", min_value=500.0, max_value=5000.0, value=1500.0, step=50.0, key="knn_city_avg")
                 
-                # Row 5: Latitude & Longitude
-                col1, col2 = st.columns(2)
-                with col1:
-                    latitude = st.number_input("Latitude", min_value=-90.0, max_value=90.0, value=40.7128, step=0.01, key="knn_latitude")
-                with col2:
-                    longitude = st.number_input("Longitude", min_value=-180.0, max_value=180.0, value=-74.0060, step=0.01, key="knn_longitude")
-                
                 submit = st.form_submit_button("Predict Rent Price Category", use_container_width=True)
                 
             if submit:
@@ -1014,8 +1007,6 @@ elif "Model Predictions" in page:
                         'square_feet': [float(sqft)],
                         'city_avg_price': [float(city_avg)],
                         'state': [state_code],
-                        'latitude': [float(latitude)],
-                        'longitude': [float(longitude)],
                         'housing/rent/apartment': [apt_val],
                         'housing/rent/condo': [condo_val],
                         'fee_yes': [fee_val]

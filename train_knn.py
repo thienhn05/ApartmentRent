@@ -57,7 +57,6 @@ df['city_avg_price'] = df['cityname'].map(city_map)
 features = [
     'bathrooms', 'bedrooms', 'square_feet',
     'city_avg_price', 'state',
-    'latitude', 'longitude',
     'housing/rent/apartment',
     'housing/rent/condo', 'fee_yes'
 ]
